@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -18,15 +19,27 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
+        val projectProperties = readProperties(file("../secrets.properties"))
+        val key = if(projectProperties.containsKey("GPT_API_KEY")) projectProperties["GPT_API_KEY"] as String else " "
+
+        debug {
+            buildConfigField("String", "API_KEY", "\"$key\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "GPT_API_KEY", "\"$key\"")
         }
     }
     compileOptions {
@@ -61,6 +74,12 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     implementation("androidx.core:core-splashscreen:1.0.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.0")
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -69,4 +88,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+fun readProperties(propertiesFile: File) = Properties().apply {
+    propertiesFile.inputStream().use { fis ->
+        load(fis)
+    }
 }

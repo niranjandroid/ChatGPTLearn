@@ -33,4 +33,6 @@ google-services.json
 *.hprof
 .talismanrc
 secrets.properties
+.talismanrc
+secrets.properties
 *.DS_Store

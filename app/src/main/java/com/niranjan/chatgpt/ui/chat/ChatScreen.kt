@@ -11,16 +11,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.niranjan.chatgpt.Message
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.niranjan.chatgpt.data.remote.Message
+import com.niranjan.chatgpt.di.ChatGPTModule
+import com.niranjan.chatgpt.ui.chat.ChatViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen() {
+    var viewModel = ChatViewModel(ChatGPTModule().getChatGptApi()) // DI
     var text by remember { mutableStateOf("") }
-    var messages by remember { mutableStateOf(listOf<Message>(
-        Message("Hello! Chat GPT. How are you??? Hello! Chat GPT. How are you??? ", true), Message("Hello User! I am good. How are you Hello User! I am good. How are you", false)
-    )) }
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
 
     Box {
         TopAppBar(title = { Text(text = "ChatGPT4") })
@@ -32,7 +34,7 @@ fun ChatScreen() {
                     },
                     onClick = {
                         if (text.isNotBlank()) {
-                            messages = messages + Message(text, true)
+                            viewModel.requestGpt(text)
                             text = ""
                         }
                     })
@@ -110,7 +112,7 @@ fun MessageBubble(
         ) {
 
             Text(
-                text = message.text,
+                text = message.content,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .widthIn(0.dp, 300.dp)
